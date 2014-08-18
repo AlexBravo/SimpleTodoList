@@ -1,6 +1,7 @@
 package com.alexbravo.simpletodolist;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -9,6 +10,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
 
@@ -21,6 +24,8 @@ public class TodoActivity extends Activity {
     ArrayList<String> items;
     ArrayAdapter<String> itemsAdapter;
     ListView lvItems;
+
+    private final int REQUEST_CODE = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +78,17 @@ public class TodoActivity extends Activity {
                 return true;
             }
         });
+        lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent i = new Intent(TodoActivity.this, EditItemActivity.class);
+                i.putExtra("position", position);
+                i.putExtra("text", ((TextView) view).getText().toString());
+
+                startActivityForResult(i, REQUEST_CODE);
+            }
+
+        });
     }
 
     private void readItems() {
@@ -96,4 +112,17 @@ public class TodoActivity extends Activity {
         }
     }
 
+    // ActivityOne.java, time to handle the result of the sub-activity
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // REQUEST_CODE is defined above
+        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+            // Extract name value from result extras
+            String text = data.getExtras().getString("newText");
+            int position = data.getExtras().getInt("position");
+            items.set(position, text);
+            itemsAdapter.notifyDataSetChanged();
+            saveItems();
+        }
+    }
 }
